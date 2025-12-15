@@ -1,0 +1,486 @@
+{
+  "info": {
+    "name": "停车管理系统API测试",
+    "description": "完整的API测试集合，包含所有接口的测试用例",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "ownerToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. 认证接口",
+      "item": [
+        {
+          "name": "1.1 管理员登录",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// 测试状态码",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// 测试响应结构",
+                  "pm.test(\"Response has correct structure\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('code');",
+                  "    pm.expect(jsonData).to.have.property('message');",
+                  "    pm.expect(jsonData).to.have.property('data');",
+                  "});",
+                  "",
+                  "// 保存Token",
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.token) {",
+                  "        pm.collectionVariables.set(\"adminToken\", jsonData.data.token);",
+                  "        console.log(\"Admin Token saved: \" + jsonData.data.token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/admin/login?loginName=admin&password=admin123",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "admin", "login"],
+              "query": [
+                {"key": "loginName", "value": "admin"},
+                {"key": "password", "value": "admin123"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "1.2 业主登录",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// 保存Token",
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.token) {",
+                  "        pm.collectionVariables.set(\"ownerToken\", jsonData.data.token);",
+                  "        console.log(\"Owner Token saved: \" + jsonData.data.token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/owner/login?loginName=owner001&password=admin123",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "owner", "login"],
+              "query": [
+                {"key": "loginName", "value": "owner001"},
+                {"key": "password", "value": "admin123"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. 管理员-业主管理",
+      "item": [
+        {
+          "name": "2.1 分页查询业主列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/owners?pageNum=1&pageSize=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "owners"],
+              "query": [
+                {"key": "pageNum", "value": "1"},
+                {"key": "pageSize", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "2.2 查询所有业主",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/admin/owners/all"
+          }
+        },
+        {
+          "name": "2.3 新增业主",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loginName\": \"owner_test\",\n  \"password\": \"admin123\",\n  \"username\": \"测试业主\",\n  \"phone\": \"13800138999\",\n  \"sex\": \"0\",\n  \"idCard\": \"110101199001011111\"\n}"
+            },
+            "url": "{{baseUrl}}/admin/owners"
+          }
+        },
+        {
+          "name": "2.4 根据ID查询业主",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/admin/owners/1001"
+          }
+        },
+        {
+          "name": "2.5 更新业主信息",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"张三（已修改）\",\n  \"phone\": \"13900139999\"\n}"
+            },
+            "url": "{{baseUrl}}/admin/owners/1001"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. 管理员-车位管理",
+      "item": [
+        {
+          "name": "3.1 分页查询车位列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/parkings?pageNum=1&pageSize=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "parkings"],
+              "query": [
+                {"key": "pageNum", "value": "1"},
+                {"key": "pageSize", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "3.2 查询空闲车位",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/admin/parkings/available"
+          }
+        },
+        {
+          "name": "3.3 新增车位",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"parkName\": \"测试车位\",\n  \"parkNum\": \"TEST-001\",\n  \"parkType\": \"地下车位\",\n  \"remark\": \"测试用车位\"\n}"
+            },
+            "url": "{{baseUrl}}/admin/parkings"
+          }
+        },
+        {
+          "name": "3.4 分配车位",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/parkings/assign?userId=1003&parkId=1003&carNumber=京C88888",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "parkings", "assign"],
+              "query": [
+                {"key": "userId", "value": "1003"},
+                {"key": "parkId", "value": "1003"},
+                {"key": "carNumber", "value": "京C88888"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "3.5 业主退车位",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/parkings/return?userId=1003",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "parkings", "return"],
+              "query": [
+                {"key": "userId", "value": "1003"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. 管理员-停车费管理",
+      "item": [
+        {
+          "name": "4.1 分页查询停车费",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/parking-fees?pageNum=1&pageSize=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "parking-fees"],
+              "query": [
+                {"key": "pageNum", "value": "1"},
+                {"key": "pageSize", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "4.2 新增停车费",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1001,\n  \"parkId\": 1001,\n  \"payParkMonth\": \"2026-01\",\n  \"payParkMoney\": 300.00,\n  \"remark\": \"2026年1月停车费\"\n}"
+            },
+            "url": "{{baseUrl}}/admin/parking-fees"
+          }
+        },
+        {
+          "name": "4.3 查询指定业主的停车费",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/parking-fees?userId=1001",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "parking-fees"],
+              "query": [
+                {"key": "userId", "value": "1001"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. 业主端接口",
+      "item": [
+        {
+          "name": "5.1 查看我的车位",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/owner/my-parking?userId=1001",
+              "host": ["{{baseUrl}}"],
+              "path": ["owner", "my-parking"],
+              "query": [
+                {"key": "userId", "value": "1001"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "5.2 查看我的停车费记录",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/owner/my-parking-fees?userId=1001",
+              "host": ["{{baseUrl}}"],
+              "path": ["owner", "my-parking-fees"],
+              "query": [
+                {"key": "userId", "value": "1001"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "5.3 查看未缴费列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/owner/unpaid-fees?userId=1001",
+              "host": ["{{baseUrl}}"],
+              "path": ["owner", "unpaid-fees"],
+              "query": [
+                {"key": "userId", "value": "1001"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "5.4 缴纳停车费",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/owner/pay-parking-fee?parkFeeId=1&userId=1001",
+              "host": ["{{baseUrl}}"],
+              "path": ["owner", "pay-parking-fee"],
+              "query": [
+                {"key": "parkFeeId", "value": "1"},
+                {"key": "userId", "value": "1001"}
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
